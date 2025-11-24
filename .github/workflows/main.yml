@@ -1,0 +1,58 @@
+name: Build and Deploy train-ticket-reservation
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🔨 Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: 🗂 Find WAR file
+        run: echo "WAR_FILE=$(ls target/*.war | head -n 1)" >> $GITHUB_ENV
+
+      - name: ⬆ Upload WAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: war-file
+          path: ${{ env.WAR_FILE }}
+
+  deploy-dev:
+      needs: build  
+      runs-on: ubuntu-latest
+
+      steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: war-file
+
+      - name: 🚀 Deploy to DEV
+        env:
+          URL: ${{ secrets.TOMCAT_HOST }}
+          USER: ${{ secrets.TOMCAT_USER }}
+          PASS: ${{ secrets.TOMCAT_PASSWORD }}
+        run: |
+          WAR_FILE=$(ls *.war | head -n 1)
+          echo "Deploying $WAR_FILE to DEV ($URL)"
+
+          echo "📌 Checking Tomcat Manager access..."
+          curl -v -u "$USER:$PASS" "$URL/list"
+
+          echo "📌 Deploying WAR file..."
+          curl -v -u "$USER:$PASS" --fail --show-error -T "$WAR_FILE" \
+            "$URL/deploy?path=/train-ticket-reservation&update=true"
