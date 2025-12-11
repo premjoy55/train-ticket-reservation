@@ -71,7 +71,7 @@ jobs:
         env:
            URL: ${{ secrets.TOMCAT_HOST_PRE_PROD }}
            USER: ${{ secrets.TOMCAT_USER_PRE_PROD }}
-           PASS: ${{ secrets.TOMCAT_PASSWARD_PRE_PROD }}
+           PASS: ${{ secrets.TOMCAT_PASSWORD_PRE_PROD }}
         run: |
           WAR_FILE=$(ls *.war | head -n 1)
           echo "Deploying $WAR_FILE to PRE_PROD ($URL)"
@@ -121,7 +121,7 @@ jobs:
         env:
           URL: ${{ secrets.TOMCAT_HOST_PROD }}
           USER: ${{ secrets.TOMCAT_USER_PROD }}
-          PASS: ${{ secrets.TOMCAT_PASSWARD_PROD }}
+          PASS: ${{ secrets.TOMCAT_PASSWORD_PROD }}
         run: |
           WAR_FILE=$(ls *.war | head -n 1)
           echo "Deploying $WAR_FILE to PROD ($URL)"
